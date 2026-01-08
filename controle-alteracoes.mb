@@ -1,6 +1,37 @@
-# Controle de Alterações - Sistema de Pagamentos Prefeitura
+# Controle de Alterações - Sistema de Empenhos
 
-## [2024-01-08] Versão Inicial
+## [2024-01-08] Versão 2.0 - Sistema de Empenhos
+
+### Novos Módulos
+- **Fornecedores**: CRUD completo com dados bancários e CNPJ
+- **Contratos**: Gestão de contratos vinculados a fornecedores
+- **Empenhos**: Cadastro e fluxo de aprovação (EM_AVALIACAO → APROVADO/REPROVADO → PAGO/CANCELADO)
+- **Dashboard**: Resumo financeiro com estatísticas em tempo real
+- **Auditoria**: Histórico de todas as ações do sistema
+
+### Alterações no Schema
+- Adicionados enums: Role, StatusEmpenho, StatusContrato, TipoConta
+- Adicionado campo `role` no modelo User
+- Criados modelos: Fornecedor, Contrato, Empenho, AuditoriaLog
+
+### Layout e Navegação
+- Menu lateral com navegação entre módulos
+- Layout responsivo com sidebar integrada
+- Proteção de rotas por autenticação
+
+### Regras de Negócio Implementadas
+- Empenho inicia com status EM_AVALIACAO
+- Não é possível pagar sem aprovação prévia
+- Não é permitido excluir empenho já pago
+- Empenhos vinculados a contrato não podem exceder valor total
+
+### Auditoria
+- Todas as ações de CREATE, UPDATE, DELETE e STATUS_CHANGE são registradas
+- Formato: [DATA_HORA] | USUÁRIO | AÇÃO | ENTIDADE | ID | DETALHES
+
+---
+
+## [2024-01-08] Versão 1.0 - Sistema Inicial
 
 ### Setup do Projeto
 - Criado projeto Next.js 15 com App Router e TypeScript
@@ -9,24 +40,9 @@
 
 ### Banco de Dados
 - Configurado Prisma ORM com Supabase PostgreSQL
-- Criado modelo User com campos: id, name, email, password, status, deleted, createdAt, updatedAt
-- Executada migration inicial
+- Criado modelo User com campos: id, name, email, password, status, deleted
 
 ### Autenticação
 - Implementado NextAuth.js com provider de credenciais
 - Criada tela de login institucional
 - Configurado middleware para proteção de rotas
-- Implementado gerenciamento de sessão JWT
-
-### CRUD de Usuários
-- Tela de listagem com tabela, filtros e ações
-- Formulário de cadastro com validação
-- Formulário de edição
-- Exclusão lógica (soft delete)
-- Toggle de status ativo/inativo
-
-### Decisões Técnicas
-- Utilizou-se bcryptjs para criptografia de senhas (12 rounds)
-- Sessions armazenadas em JWT para melhor escalabilidade
-- Soft delete implementado para manter histórico de usuários
-- Design institucional com tema dark e cores azul/cyan

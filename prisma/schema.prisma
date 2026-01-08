@@ -6,17 +6,139 @@ datasource db {
   provider  = "postgresql"
 }
 
+// Enums
+enum Role {
+  ADMIN
+  FINANCEIRO
+  AUDITORIA
+}
+
+enum StatusEmpenho {
+  EM_AVALIACAO
+  APROVADO
+  REPROVADO
+  PAGO
+  CANCELADO
+}
+
+enum StatusContrato {
+  VIGENTE
+  ENCERRADO
+  SUSPENSO
+}
+
+enum TipoConta {
+  CORRENTE
+  POUPANCA
+}
+
+// Models
 model User {
   id        String   @id @default(cuid())
   name      String
   email     String   @unique
   password  String
+  role      Role     @default(FINANCEIRO)
   status    Boolean  @default(true)
   deleted   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  empenhos  Empenho[]
+
   @@index([email])
   @@index([status])
+  @@index([role])
   @@map("users")
+}
+
+model Fornecedor {
+  id           String    @id @default(cuid())
+  razaoSocial  String
+  nomeFantasia String?
+  cnpj         String    @unique
+  endereco     String?
+  telefone     String?
+  email        String?
+  banco        String?
+  agencia      String?
+  conta        String?
+  tipoConta    TipoConta?
+  status       Boolean   @default(true)
+  deleted      Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  contratos    Contrato[]
+  empenhos     Empenho[]
+
+  @@index([cnpj])
+  @@index([status])
+  @@map("fornecedores")
+}
+
+model Contrato {
+  id            String         @id @default(cuid())
+  numero        String         @unique
+  fornecedorId  String
+  fornecedor    Fornecedor     @relation(fields: [fornecedorId], references: [id])
+  objeto        String
+  dataInicio    DateTime
+  dataTermino   DateTime
+  valorTotal    Decimal        @db.Decimal(15, 2)
+  status        StatusContrato @default(VIGENTE)
+  deleted       Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  empenhos      Empenho[]
+
+  @@index([numero])
+  @@index([fornecedorId])
+  @@index([status])
+  @@map("contratos")
+}
+
+model Empenho {
+  id                    String        @id @default(cuid())
+  numero                String        @unique
+  fornecedorId          String
+  fornecedor            Fornecedor    @relation(fields: [fornecedorId], references: [id])
+  possuiContrato        Boolean       @default(false)
+  contratoId            String?
+  contrato              Contrato?     @relation(fields: [contratoId], references: [id])
+  orgaoPagador          String
+  cnpjOrgao             String
+  descricao             String
+  valor                 Decimal       @db.Decimal(15, 2)
+  dataEmissao           DateTime      @default(now())
+  dataPrevistaPagamento DateTime?
+  status                StatusEmpenho @default(EM_AVALIACAO)
+  observacoes           String?
+  usuarioId             String
+  usuario               User          @relation(fields: [usuarioId], references: [id])
+  deleted               Boolean       @default(false)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  @@index([numero])
+  @@index([fornecedorId])
+  @@index([contratoId])
+  @@index([status])
+  @@index([usuarioId])
+  @@map("empenhos")
+}
+
+model AuditoriaLog {
+  id         String   @id @default(cuid())
+  dataHora   DateTime @default(now())
+  usuario    String
+  acao       String
+  entidade   String
+  entidadeId String
+  detalhes   String?
+
+  @@index([dataHora])
+  @@index([entidade])
+  @@map("auditoria_logs")
 }
